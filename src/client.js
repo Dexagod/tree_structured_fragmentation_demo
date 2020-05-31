@@ -6,7 +6,7 @@ let totalRequests = 0;
 let individualRequests = new Set();
 
 
-let acClient = new treeBrowser.AutocompleteClient(false)
+let acClient = new treeBrowser.FuzzyAutocompleteClient(10)
 
 window.onload = function() {main()}
 
@@ -16,6 +16,9 @@ async function main() {
   let individualCounterDisplay = document.getElementById('individualrequestscounter')
   acClient.on('client-cache-miss', (e) => {cacheMisses += 1; cacheCountDisplay.innerHTML = cacheMisses})
 
+  acClient.on("topn", (data) => {
+   console.log("topn", data)
+  });
   acClient.on("data", (data) => {
     let dataEntities = parseData(data)
     for (let entity of dataEntities){
@@ -40,7 +43,7 @@ var currentDisplayedItems = []
 async function queryAutocompletion(searchValue){
   if (searchValue === "") { clearAllQueries(); return; }
   prepareForNewQuery(searchValue)
-  let streetsURI = 'http://193.190.127.164/minidemostreetdata/25/node0.jsonld#Collection'
+  let streetsURI = 'http://192.168.1.56/streetssubstring/50/node0.jsonld#Collection'
   let propertypath = ["http://www.w3.org/2000/01/rdf-schema#label"];
   acClient.query(searchValue.trim(), treeBrowser.BTreePrefixQuery, propertypath, streetsURI, requiredResults)
 }
