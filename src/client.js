@@ -5,7 +5,8 @@ let cacheMisses = 0;
 let totalRequests = 0;
 let individualRequests = new Set();
 
-const rootURI = 'http://192.168.1.56:4000/substring/50/node0.jsonld#Collection'
+// const rootURI = 'http://192.168.1.56:4000/substring/50/node0.jsonld#Collection'
+const rootURI = 'http://109.129.221.176:4000/substring/50/node0.jsonld#Collection'
 const queryTimeout = 60000;
 
 let acClient = new treeBrowser.FuzzyAutocompleteClient(15)
