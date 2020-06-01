@@ -5,8 +5,10 @@ let cacheMisses = 0;
 let totalRequests = 0;
 let individualRequests = new Set();
 
+const rootURI = 'http://192.168.1.56:4000/substring/50/node0.jsonld#Collection'
+const queryTimeout = 60000;
 
-let acClient = new treeBrowser.FuzzyAutocompleteClient(10)
+let acClient = new treeBrowser.FuzzyAutocompleteClient(15)
 
 window.onload = function() {main()}
 
@@ -17,39 +19,78 @@ async function main() {
   acClient.on('client-cache-miss', (e) => {cacheMisses += 1; cacheCountDisplay.innerHTML = cacheMisses})
 
   acClient.on("topn", (data) => {
-   console.log("topn", data)
+    console.log("topN", data)
+    clearSideBarItems();
+    for (let element of data){
+      let obj = element.object.jsonld
+      let contents = "\
+      type: "+getIdOrValue(obj["http://www.w3.org/1999/02/22-rdf-syntax-ns#type"])+"\n \
+      lat: "+getIdOrValue(obj["http://www.w3.org/2003/01/geo/wgs84_pos#lat"])+"\n \
+      long: "+getIdOrValue(obj["http://www.w3.org/2003/01/geo/wgs84_pos#long"])+"\
+      "
+      addSideBarItem(getIdOrValue(obj["http://www.geonames.org/ontology#name"]), contents, obj["id"])
+    }
   });
+
   acClient.on("data", (data) => {
     let dataEntities = parseData(data)
     for (let entity of dataEntities){
       createCard(entity)
     }
   });
+  
+  const input = document.getElementById("bar")
 
-  autocomplete(document.getElementById("bar"));
-  document.getElementById("bar").addEventListener("input", async function(e) {
+  autocomplete(input);
+  input.addEventListener("input", async function(e) {
     let searchValue = e.target.value
     if (searchValue === "") { clearAllQueries(); return; }
-    totalRequests += 1;
-    requestCounterDisplay.innerHTML = totalRequests
-    individualRequests.add(searchValue)
-    individualCounterDisplay.innerHTML = individualRequests.size
-    queryAutocompletion(searchValue);
   });
+
+  document.getElementById("searchButton").onclick = search
+
+  input.addEventListener("keyup", function(event) {
+    // Number 13 is the "Enter" key on the keyboard
+    if (event.keyCode === 13) {
+      // Cancel the default action, if needed
+      event.preventDefault();
+      // Trigger the button element with a click
+      document.getElementById("searchButton").click()
+    }
+  });
+
 }
 
 var currentDisplayedItems = []
 
+function search(){
+  let searchValue = document.getElementById("bar").value
+  if(searchValue.length < 3) {
+    window.alert("Please give 3 or more characters as input");
+    return;
+  }
+  totalRequests += 1;
+  document.getElementById('requestcounter').innerHTML = totalRequests
+  document.getElementById('individualrequestscounter').innerHTML = individualRequests.size
+  
+  queryAutocompletion(searchValue)
+}
+
 async function queryAutocompletion(searchValue){
-  if (searchValue === "") { clearAllQueries(); return; }
+  if (searchValue.length < 3) { clearAllQueries(); return; }
   prepareForNewQuery(searchValue)
-  let streetsURI = 'http://192.168.1.56/streetssubstring/50/node0.jsonld#Collection'
-  let propertypath = ["http://www.w3.org/2000/01/rdf-schema#label"];
-  acClient.query(searchValue.trim(), treeBrowser.BTreePrefixQuery, propertypath, streetsURI, requiredResults)
+  // let propertypath = ["http://www.w3.org/2000/01/rdf-schema#label"];
+  let propertypath = ["http://www.geonames.org/ontology#name"]
+  acClient.query(searchValue.trim(), treeBrowser.SubstringQuery, propertypath, rootURI, requiredResults)
+  setTimeout(() => {
+    console.log("interrupting queries")
+    acClient.interrupt();
+  }, queryTimeout);
 }
 
 function prepareForNewQuery(searchValue){
   clearAllQueries()
+  clearSideBarItems()
 }
 
 async function createCard(item){
@@ -59,8 +100,7 @@ async function createCard(item){
   addSideBarItem(cardTitle, tripleString, item, function(id) { window.open(id) })
 }
 
-async function addSideBarItem(title, triple, item, onclickfct = null, lat = null, long = null) {
-  let id = item.streetName["id"]
+async function addSideBarItem(title, triple, id, onclickfct = null, lat = null, long = null) {
   if (currentDisplayedItems.length >= 25) {
     interruptAllQueries()
     return
@@ -81,7 +121,6 @@ async function addSideBarItem(title, triple, item, onclickfct = null, lat = null
   sidebarItemP.className = "sidebarItemP";
   sidebarItemP.innerHTML = triple;
   sidebarItem.appendChild(sidebarItemP);
-  
 
   sidebarContainer.appendChild(sidebarItem);
 
@@ -217,4 +256,5 @@ function parseData(data){
     }
   }
   return dataEntities
+  
 }
