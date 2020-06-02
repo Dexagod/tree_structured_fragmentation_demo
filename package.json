@@ -9,8 +9,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "rdf_tree_browser": "file:../../../ldtree/treeBrowser",
     "webpack": "^4.41.6",
     "webpack-cli": "^3.3.11"
+  },
+  "dependencies": {
+    "rdf_tree_browser": "^1.1.1"
   }
 }
