@@ -4,7 +4,8 @@ var resultsgraph = null;
 async function createResultsGraph(resultsList){
     resultsgraph = Highcharts.chart('resultscontainer', {
         chart: {
-            zoomType: 'x'
+            zoomType: 'x',
+            animation: false,
         },
 
         title: {
@@ -75,7 +76,7 @@ async function updateResultsGraph(resultsList, currentOffset, currentIndex, curr
         name: currentSearchValue,
         data: newResultsList,
         color: colors[currentIndex%colors.length], // Color value
-    }, true)
+    }, false)
     
     
     // resultsgraph.series[0].data = resultsList
@@ -100,7 +101,7 @@ async function addPlotBandhit(offsetObject, time){
         color: 'rgba(50,255,0,0.55)', // Color value
         from: offsetObject.time+time, // Start of the plot band
         to: offsetObject.time+time + 0.01 //
-    }, true)
+    }, false)
     
 }
 
@@ -110,7 +111,7 @@ async function addPlotBandmiss(offsetObject, time){
         color: 'rgba(255,50,0,0.55)', // Color value
         from: offsetObject.time+time, // Start of the plot band
         to: offsetObject.time+time + 0.01 //
-    }, true)
+    }, false)
 }
 
 function resetCharts(){
@@ -122,4 +123,8 @@ function resetCharts(){
     
     createResultsGraph([])
     currentIndex = 0;
+}
+
+function redrawGraphs(){
+    resultsgraph.chart.events.redraw()
 }
