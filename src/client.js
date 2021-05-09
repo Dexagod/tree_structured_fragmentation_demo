@@ -40,7 +40,7 @@ var currentDisplayedItems = []
 async function queryAutocompletion(searchValue){
   if (searchValue === "") { clearAllQueries(); return; }
   prepareForNewQuery(searchValue)
-  let streetsURI = 'http://193.190.127.164/minidemostreetdata/25/node0.jsonld#Collection'
+  let streetsURI = 'http://tree.linkeddatafragments.org/data/minidemostreetdata/25/node0.jsonld#Collection'
   let propertypath = ["http://www.w3.org/2000/01/rdf-schema#label"];
   acClient.query(searchValue.trim(), treeBrowser.BTreePrefixQuery, propertypath, streetsURI, requiredResults)
 }
